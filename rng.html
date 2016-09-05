@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+
+<!--
+
+Aloysius Lee & Callista Yin
+
+Github: https://github.com/cyanoise/html_rng
+
+
+	.______    _______  _______ .______    __  .__   __.  __         ___   .___________.
+	|   _  \  |   ____||   ____||   _  \  |  | |  \ |  | (_ )       /   \  |           |
+	|  |_)  | |  |__   |  |__   |  |_)  | |  | |   \|  |  |/       /  ^  \ `---|  |----`
+	|   ___/  |   __|  |   __|  |   ___/  |  | |  . `  |          /  /_\  \    |  |     
+	|  |      |  |____ |  |____ |  |      |  | |  |\   |         /  _____  \   |  |     
+	| _|      |_______||_______|| _|      |__| |__| \__|        /__/     \__\  |__|     
+
+
+     _______.     ___      __    __    ______  _______      ______   ______    _______   _______ 
+    /       |    /   \    |  |  |  |  /      ||   ____|    /      | /  __  \  |       \ |   ____|
+   |   (----`   /  ^  \   |  |  |  | |  ,----'|  |__      |  ,----'|  |  |  | |  .--.  ||  |__   
+    \   \      /  /_\  \  |  |  |  | |  |     |   __|     |  |     |  |  |  | |  |  |  ||   __|  
+.----)   |    /  _____  \ |  `--'  | |  `----.|  |____    |  `----.|  `--'  | |  '--'  ||  |____ 
+|_______/    /__/     \__\ \______/   \______||_______|    \______| \______/  |_______/ |_______|
+
+
+-->
+
+<head>
+	<link href='https://fonts.googleapis.com/css?family=Product+Sans' rel='stylesheet' type='text/css'>
+	<meta charset="utf-8">
+	<title>Random Number Generator</title>
+	<link rel="icon" href="html_files/rng_icon.png">
+
+	<script type="text/javascript">
+		var numberHistory = [];
+
+		// Load sound
+		var sound;
+		try {
+			sound = new Audio("html_files/ticking.mp3");
+		} catch (e) {
+
+		}
+
+		function resetSetting() {
+			document.getElementById("minValue").value = 0;
+			document.getElementById("maxValue").value = 100;
+			document.getElementById("repeatCheckbox").checked = false;
+			document.getElementById("animSoundCheckbox").checked = true;
+		}
+
+		function cont() {
+			numberHistory = [];
+			document.getElementById("genNumber").innerHTML = "0";
+			var minInput = document.getElementById("minValue").value;
+			var maxInput = document.getElementById("maxValue").value;
+			if (!isNaN(minInput) && !isNaN(maxInput) && parseInt(maxInput, 10) < 100000000 && parseInt(minInput, 10) < parseInt(maxInput, 10)) {
+				var settingDiv = document.getElementById("setting");
+				var generatorDiv = document.getElementById("generator");
+				settingDiv.style.display = "none";
+				generatorDiv.style.display = "block";
+				var repeat = document.getElementById("repeatCheckbox").checked;
+				if (!repeat) {
+					document.getElementById("historyList").style.display = "block";
+				}
+			} else {
+				alert("Invalid input! Values must be from 0 - 100 000 000");
+			}
+		}
+
+		function genButtonClick() {
+			var minInput = document.getElementById("minValue").value;
+			var maxInput = document.getElementById("maxValue").value;
+			var repeat = document.getElementById("repeatCheckbox");
+			var animSound = document.getElementById("animSoundCheckbox");
+			if (numberHistory.length == maxInput - minInput + 1) {
+				alert("No more numebrs to generate");
+			} else {
+				if (animSound.checked) {
+					// Disable buttons
+					document.getElementById("genButton").disabled = true;
+					document.getElementById("restartButton").disabled = true;
+
+					// Play sound effect
+					try {
+						sound.play();
+					} catch (e) {
+
+					}
+
+					// Animation
+					var seconds = 2;
+					var animGen = 20;
+					var count = 0;
+					var loop = setInterval(function () {
+						setGenNumber(getRandomInt(minInput, maxInput));
+						count++;
+						if (count >= seconds * animGen) {
+							clearInterval(loop);
+							finalGenNumber(repeat.checked, minInput, maxInput);
+							// Re-enable buttons 
+							document.getElementById("genButton").disabled = false;
+							document.getElementById("restartButton").disabled = false;
+						}
+					}, 50);
+				} else {
+					finalGenNumber(repeat.checked, minInput, maxInput);
+				}
+			}
+		}
+
+		function finalGenNumber(repeat, min, max) {
+			var num = getRandomInt(min, max);
+			if (!repeat) {
+				while (numberHistory.contains(num)) {
+					num = getRandomInt(min, max);
+				}
+				numberHistory.push(num);
+				setGenNumber(num);
+				addToHistory(num);
+				if (numberHistory.length == max - min + 1) {
+					setTimeout(function () {
+						alert("No more numbers to generate");
+					}, 250);
+				}
+			} else {
+				setGenNumber(num);
+			}
+		}
+
+		function setGenNumber(input) {
+			document.getElementById("genNumber").innerHTML = input;
+		}
+
+		function addToHistory(num) {
+			var item = document.createElement("li");
+			item.innerHTML = num;
+			var list = document.getElementById("historyList");
+			list.insertBefore(item, list.firstChild);
+		}
+
+		function getRandomInt(min, max) {
+			return Math.floor(Math.random() * (max - min + 1) + min);
+		}
+
+		function restart() {
+			var settingDiv = document.getElementById("setting");
+			var generatorDiv = document.getElementById("generator");
+			var historyList = document.getElementById("historyList");
+			settingDiv.style.display = "block";
+			generatorDiv.style.display = "none";
+			historyList.style.display = "none";
+			while (historyList.firstChild) {
+				historyList.removeChild(historyList.firstChild);
+			}
+		}
+
+		Array.prototype.contains = function (obj) {
+			var i = this.length;
+			while (i--) {
+				if (this[i] === obj) {
+					return true;
+				}
+			}
+			return false;
+		}
+	</script>
+
+	<style>
+		html {
+			font-family: Arial, sans-serif;
+			font-size: 1.8em;
+			background-color: #FFAAA6;
+		}
+		
+		#setting {
+			text-align: center;
+			margin-top: 2.5em;
+		}
+		
+		#setting table {
+			margin-left: auto;
+			margin-right: auto;
+			border: 15px solid #FF8C90;
+			padding: 1em;
+		}
+		
+		#setting table * {
+			margin: 1em;
+		}
+		
+		.numberInput {
+			font-size: 1em;
+			text-align: center;
+			padding: 0.2em;
+			border: 1px solid gray;
+			border-radius: 15px;
+			width: 8em;
+			background-color: #FF8C90;
+			color: white;
+		}
+		
+		#setting button {
+			margin-top: 2em;
+			font-size: 1em;
+			margin-left: 1em;
+			margin-right: 1em;
+		}
+		
+		#historyList {
+			display: none;
+		}
+		
+		#generator {
+			display: none;
+		}
+		
+		td {
+			font-family: Product sans;
+		}
+		
+		.Value {
+			color: white;
+		}
+		
+		button {
+			color: white;
+			background-color: #a8E6CE;
+			padding: 10px;
+			border-radius: 25px;
+			width: 6em;
+		}
+		
+		#generator {
+			font-size: 1.5em;
+			font-family: Product Sans;
+			color: white;
+			margin-top: 1.5em;
+		}
+		
+		#genMenu {
+			padding: 0.5em;
+			background-color: #FF8C94;
+			width: 10em;
+			border-radius: 45px;
+			margin-left: auto;
+			margin-right: auto;
+		}
+		
+		.genMenuButtons {
+			color: white;
+			background-color: #FFB3B5;
+			font-size: 0.75em;
+			margin-bottom: 0.5em;
+			margin-left: 27%;
+		}
+		
+		#genNumber {
+			font-size: 2em;
+			text-align: center;
+		}
+		
+		#historyList {
+			list-style: none;
+			text-align: center;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="setting">
+		<table>
+			<tr>
+				<td class="Value">Minimum Value:</td>
+				<td>
+					<input id="minValue" class="numberInput" type="number" min="0" max="99999999" value="0">
+				</td>
+			</tr>
+			<tr>
+				<td class="Value">Maximum Value:</td>
+				<td>
+					<input id="maxValue" class="numberInput" type="number" min="1" max="100000000" value="100">
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2">
+					<input id="repeatCheckbox" class="checkbox" type="checkbox">Repeat Values
+					<br>
+					<input id="animSoundCheckbox" class="checkbox" type="checkbox" checked>Animation &amp; Sound
+				</td>
+			</tr>
+		</table>
+		<button onclick="cont()">Continue</button>
+		<button onclick="resetSetting()">Reset</button>
+	</div>
+
+	<div id="generator">
+		<div id="genMenu">
+			<p id="genNumber">0</p>
+			<button id="genButton" class="genMenuButtons" onclick="genButtonClick()">Generate</button>
+			<br>
+			<button id="restartButton" class="genMenuButtons" onclick="restart()"> Restart </button>
+		</div>
+
+		<ul id="historyList">
+		</ul>
+	</div>
+
+</body>
+
+</html>
